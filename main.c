@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
+#include "hashmap.h"
 
 char *read_file_into_memory(const char *filename);
 
 int main(int argc, char **argv)
 {
         char *phrases;
+        clock_t start;
+        hashmap *testmap;
 
+        start = clock();
         phrases = read_file_into_memory(argv[1]);
-        getchar();
+        printf("Time taken: %f\n", (float)(clock() - start) / CLOCKS_PER_SEC);
         free(phrases);
         (void)argc;
         return 0;
