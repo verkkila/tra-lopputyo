@@ -9,6 +9,11 @@ void intmap_insert(intmap *map, char *key, int value);
 int *intmap_get(intmap *map, const char *key);
 void intmap_delete(intmap *map);
 
+struct kv_pair {
+        char *key;
+        int value;
+};
+
 struct intmap_element {
         char *key;
         int value;
