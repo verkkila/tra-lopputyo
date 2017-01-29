@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O -g -ansi -pedantic -Wall -Wextra -Werror -Wmissing-prototypes -Wstrict-prototypes
+CFLAGS=-g -ansi -pedantic -Wall -Wextra -Werror -Wmissing-prototypes -Wstrict-prototypes
 LDFLAGS=
 EXEC=tra-lopputyo
 SOURCES=$(wildcard *.c)
