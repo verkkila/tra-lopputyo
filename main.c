@@ -50,8 +50,10 @@ int main(int argc, char **argv)
         after_finding_most_common = clock() - after_map_insertion;
         printf("Found 100 most common words in %f seconds.\n", (float)after_finding_most_common / CLOCKS_PER_SEC);
         printf("Total runtime: %f seconds.\n", ((float)after_file_read + (float)after_map_insertion + (float)after_finding_most_common) / CLOCKS_PER_SEC);
+        /*
         printf("Phrases related to \"%s\":\n", max_pair.key);
         print_all_related_phrases(max_pair.key, phrases, phrases + data_size);
+        */
         free(phrases);
         free(most_common_words);
         (void)argc;
@@ -159,6 +161,8 @@ void get_most_common_words(struct node *array, intmap *map)
 
         for (i = 0; i < map->max_elements; ++i) {
                 current = &(map->elements[i]);
+                if (current->key == NULL)
+                        continue;
                 while (current != NULL) {
                         int val;
 
