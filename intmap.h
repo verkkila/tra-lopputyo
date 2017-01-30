@@ -1,5 +1,5 @@
-#ifndef HASHMAP_INCLUDED
-#define HASHMAP_INCLUDED
+#ifndef INTMAP_INCLUDED
+#define INTMAP_INCLUDED
 
 typedef struct intmap intmap;
 typedef struct intmap_element intmap_element;

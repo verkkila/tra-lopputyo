@@ -83,10 +83,11 @@ char *read_file_into_memory(const char *file_name, unsigned int *OUT_size)
         file_data = NULL;
         file_data = malloc(file_size);
         if (file_data == NULL) {
-                printf("Could not allocate enough memory for the file. (size = %u\n", file_size);
+                printf("Could not allocate enough memory for the file. (size = %lu\n", file_size);
+                exit(1);
         } else {
                 read_bytes = fread(file_data, 1, file_size, f);
-                printf("File data located at: 0x%08x-0x%08x (size = %u bytes, read %u bytes)\n", file_data, (size_t)file_data + file_size, file_size, read_bytes);
+                printf("File data located at: 0x%08lx-0x%08lx (size = %lu bytes, read %lu bytes)\n", (unsigned long)file_data, (unsigned long)(file_data + file_size), file_size, read_bytes);
         }
         fclose(f);
         return file_data;
@@ -101,7 +102,7 @@ void insert_into_map(intmap *map, char *data_begin, char *data_end)
         map_value = NULL;
         str_len = 0;
         current_str = data_begin;
-        while ((unsigned int)current_str < (unsigned int)data_end) {
+        while (current_str < data_end) {
                 char *key;
 
                 str_len = strcspn(current_str, ":");
@@ -203,7 +204,7 @@ void print_all_related_phrases(const char *key, char *data_begin, char *data_end
         char *current_str;
 
         current_str = data_begin;
-        while ((unsigned int)current_str < (unsigned int)data_end) {
+        while (current_str < data_end) {
                 size_t str_len;
 
                 str_len = strcspn(current_str, ":");
