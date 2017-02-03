@@ -1,10 +1,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "intmap.h"
+#include "hashmap.h"
 
-static void free_elements(intmap_element *elements, size_t n);
-static void rehash(intmap *map);
+static void free_elements(hashmap_element *elements, size_t n);
+static void rehash(hashmap *map);
 /*
  * sdbm - http://www.cse.yorku.ca/~oz/hash.html
  */
@@ -20,13 +20,13 @@ static unsigned int hash(const char *key)
         return hash;
 }
 
-intmap *intmap_new(size_t initial_size)
+hashmap *hashmap_new(size_t initial_size)
 {
-        intmap *map;
+        hashmap *map;
         size_t min_element_count;
 
         map = NULL;
-        map = malloc(sizeof(struct intmap));
+        map = malloc(sizeof(struct hashmap));
         if (map == NULL)
                 return NULL;
         min_element_count = initial_size * 1.25f;
@@ -36,7 +36,7 @@ intmap *intmap_new(size_t initial_size)
         }
         map->num_elements = 0;
         map->elements = NULL;
-        map->elements = calloc(map->max_elements, sizeof(intmap_element));
+        map->elements = calloc(map->max_elements, sizeof(hashmap_element));
         if (map->elements == NULL) {
                 free(map);
                 return NULL;
@@ -44,14 +44,14 @@ intmap *intmap_new(size_t initial_size)
         return map;
 }
 
-static void rehash(intmap *map)
+static void rehash(hashmap *map)
 {
         size_t new_max_elements;
-        intmap_element *new_elements, *old_elements;
+        hashmap_element *new_elements, *old_elements;
         unsigned int i;
 
         new_max_elements = map->max_elements << 1;
-        new_elements = calloc(new_max_elements, sizeof(intmap_element));
+        new_elements = calloc(new_max_elements, sizeof(hashmap_element));
         if (new_elements == NULL) {
                 return;
         }
@@ -59,7 +59,7 @@ static void rehash(intmap *map)
         map->elements = new_elements;
 
         for (i = 0; i < map->max_elements; ++i) {
-                struct intmap_element *dest, *src;
+                struct hashmap_element *dest, *src;
 
                 src = &(old_elements[i]);
                 while (src != NULL && src->key != NULL) {
@@ -71,7 +71,7 @@ static void rehash(intmap *map)
                                 while (dest->next != NULL) {
                                         dest = dest->next;
                                 }
-                                dest->next = calloc(1, sizeof(intmap_element));
+                                dest->next = calloc(1, sizeof(hashmap_element));
                                 dest = dest->next;
                         }
                         dest->key = src->key;
@@ -83,17 +83,17 @@ static void rehash(intmap *map)
         map->max_elements = new_max_elements;
 }
 
-void intmap_insert(intmap *map, char *key, int value)
+void hashmap_insert(hashmap *map, char *key, int value)
 {
         unsigned int index;
-        intmap_element *current;
+        hashmap_element *current;
 
         index = hash(key) % map->max_elements;
         current = &(map->elements[index]);
         if (current->key != NULL && strcmp(current->key, key)) {
                 while (current->next != NULL)
                         current = current->next;
-                current->next = calloc(1, sizeof(struct intmap_element));
+                current->next = calloc(1, sizeof(struct hashmap_element));
                 current = current->next;
                 ++map->num_elements;
         } else if (current->key == NULL) {
@@ -106,10 +106,10 @@ void intmap_insert(intmap *map, char *key, int value)
         }
 }
 
-int *intmap_get(intmap *map, const char *key)
+int *hashmap_get(hashmap *map, const char *key)
 {
         unsigned int index;
-        intmap_element *current;
+        hashmap_element *current;
         
         index = hash(key) % map->max_elements;
         current = &(map->elements[index]);
@@ -125,30 +125,37 @@ int *intmap_get(intmap *map, const char *key)
         return NULL;
 }
 
-static void free_elements(struct intmap_element *elements, size_t n)
+static void free_elements(struct hashmap_element *elements, size_t n)
 {
         unsigned int i;
-        intmap_element *root, *iter;
+        hashmap_element *root, *iter;
 
         for (i = 0; i < n; ++i) {
+                hashmap_element *prev;
                 root = &(elements[i]);
-                iter = root;
+                if (root == NULL)
+                        continue;
+                prev = root;
                 do {
-                        while (iter->next != NULL)
-                                iter = iter->next;
-                        if (iter != root)
-                                free(iter);
                         iter = root;
-                } while (iter != root);
+                        while (iter->next != NULL) {
+                                prev = iter;
+                                iter = iter->next;
+                        }
+                        if (iter != root) {
+                                free(iter);
+                                prev->next = NULL;
+                        }
+                } while (root->next != NULL);
         }
         free(elements);
 }
 
-void intmap_delete(intmap *map)
+void hashmap_free(hashmap *map)
 {
         /*
         unsigned int i;
-        intmap_element *current;
+        hashmap_element *current;
         */
 
         free_elements(map->elements, map->max_elements);

@@ -16,7 +16,7 @@ struct arraylist {
 };
 
 struct arraylist *arraylist_new(size_t array_size);
-void arraylist_insert(struct arraylist *list, char *key, size_t index);
-void arraylist_delete(struct arraylist *list);
+void arraylist_insert(struct arraylist *list, size_t index, char *key);
+void arraylist_free(struct arraylist *list);
 
 #endif

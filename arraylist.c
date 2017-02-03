@@ -20,24 +20,44 @@ struct arraylist *arraylist_new(size_t array_size)
         return list;
 }
 
-void arraylist_insert(struct arraylist *list, char *key, size_t index)
+void arraylist_insert(struct arraylist *list, size_t index, char *key)
 {
         struct node *current;
 
         assert(index < list->size);
         current = &(list->elements[index]);
-        if (current->key == NULL)
-                return current;
-        while (current->next != NULL)
+        if (current->key != NULL) {
+                while (current->next != NULL)
+                        current = current->next;
+                current->next = calloc(1, sizeof(struct node));
                 current = current->next;
-        current->next = calloc(1, sizeof(struct node));
-        current = current->next;
+        }
         current->key = key;
         current->next = NULL;
 }
 
-void arraylist_delete(struct arraylist *list)
+void arraylist_free(struct arraylist *list)
 {
-        
-}
+        unsigned int i;
+        struct node *root, *iter, *prev;
 
+        for (i = 0; i < list->size; ++i) {
+                root = &(list->elements[i]);
+                if (root == NULL)
+                        continue;
+                prev = root;
+                do {
+                        iter = root;
+                        /*Siirrytään liitetyn listan viimeiseen jäseneen*/
+                        while (iter->next != NULL) {
+                                prev = iter;
+                                iter = iter->next;
+                        }
+                        /*Jos jäsen ei ole taulukon alkio, vapautetaan sille kuulunut muisti*/
+                        if (iter != root) {
+                                free(iter);
+                                prev->next = NULL;
+                        }
+                } while (root->next != NULL);
+        }
+}

@@ -4,60 +4,69 @@
 #include <assert.h>
 #include <time.h>
 #include <ctype.h>
-#include "intmap.h"
+#include "hashmap.h"
+#include "arraylist.h"
 
 char *read_file_into_memory(const char *filename, unsigned int *OUT_size);
-void insert_into_map(intmap *map, char *data_begin, char *data_end);
-struct node *find_free_spot(struct node *array, int value);
-struct node *allocate_list_array(void);
-void get_most_common_words(struct node *array, intmap *map);
-void print_most_common_words(struct node *array);
+void change_to_lowercase(char *data_begin, char *data_end);
+void insert_into_map(hashmap *map, char *data_begin, char *data_end);
+void insert_in_order(struct arraylist *list, hashmap *map);
+void print_most_common_words(struct arraylist *list);
 void print_all_related_phrases(const char *key, char *data_begin, char *data_end);
+void free_keys_and_hashmap(hashmap *map);
 
-struct node {
-        char *key;
-        struct node *next;
-};
-
-struct kv_pair max_pair = {NULL, 0};
+char *max_key = NULL;
+int max_value = 0;
 
 int main(int argc, char **argv)
 {
-        unsigned int data_size, i;
-        char *phrases, *str;
+        size_t data_size;
+        char *file_data;
         clock_t start, after_file_read, after_map_insertion, after_finding_most_common;
-        intmap *testmap;
-        struct node *most_common_words;
+        hashmap *words;
+        struct arraylist *sorted_phrases;
 
-        testmap = intmap_new(1000);
+        while (1) {
+        words = hashmap_new(1000);
         start = clock();
-        phrases = read_file_into_memory(argv[1], &data_size);
-        str = phrases;
-        for (i = 0; i < data_size; ++i) {
-                str[i] = tolower(str[i]);
-        }
+        file_data = read_file_into_memory(argv[1], &data_size);
+        change_to_lowercase(file_data, file_data + data_size);
         after_file_read = clock() - start;
         printf("File read to memory in %f seconds.\n", (float)after_file_read / CLOCKS_PER_SEC);
-        insert_into_map(testmap, phrases, phrases + data_size);
+        insert_into_map(words, file_data, file_data + data_size);
         after_map_insertion = clock() - after_file_read;
         printf("Hash table built in %f seconds.\n", (float)after_map_insertion / CLOCKS_PER_SEC);
-        most_common_words = allocate_list_array();
-        if (most_common_words == NULL) {
+        sorted_phrases = arraylist_new(max_value + 1);
+        if (sorted_phrases == NULL) {
                 return 1;
         }
-        get_most_common_words(most_common_words, testmap);
-        print_most_common_words(most_common_words);
+        insert_in_order(sorted_phrases, words);
+        print_most_common_words(sorted_phrases);
         after_finding_most_common = clock() - after_map_insertion;
         printf("Found 100 most common words in %f seconds.\n", (float)after_finding_most_common / CLOCKS_PER_SEC);
         printf("Total runtime: %f seconds.\n", ((float)after_file_read + (float)after_map_insertion + (float)after_finding_most_common) / CLOCKS_PER_SEC);
         /*
-        printf("Phrases related to \"%s\":\n", max_pair.key);
-        print_all_related_phrases(max_pair.key, phrases, phrases + data_size);
+        printf("Phrases related to \"%s\":\n", max_key);
+        print_all_related_phrases(max_key, file_data, file_data + data_size);
         */
-        free(phrases);
-        free(most_common_words);
+        arraylist_free(sorted_phrases);
+        free_keys_and_hashmap(words);
+        free(file_data);
+        getchar();
+        }
         (void)argc;
         return 0;
+}
+
+void change_to_lowercase(char *data_begin, char *data_end)
+{
+        char *str;
+
+        str = data_begin;
+        while (str <= data_end) {
+                *str = tolower(*str);
+                ++str;
+        }
 }
 
 char *read_file_into_memory(const char *file_name, unsigned int *OUT_size)
@@ -93,7 +102,7 @@ char *read_file_into_memory(const char *file_name, unsigned int *OUT_size)
         return file_data;
 }
 
-void insert_into_map(intmap *map, char *data_begin, char *data_end)
+void insert_into_map(hashmap *map, char *data_begin, char *data_end)
 {
         char *current_str;
         unsigned int str_len;
@@ -113,15 +122,15 @@ void insert_into_map(intmap *map, char *data_begin, char *data_end)
                 }
                 strncpy(key, current_str, str_len);
                 key[str_len] = '\0';
-                map_value = intmap_get(map, key);
+                map_value = hashmap_get(map, key);
                 if (map_value == NULL) {
-                        intmap_insert(map, key, 1);
+                        hashmap_insert(map, key, 1);
                 } else {
                         ++*map_value;
                 }
-                if (map_value != NULL && *map_value > max_pair.value) {
-                        max_pair.key = key;
-                        max_pair.value = *map_value;
+                if (map_value != NULL && *map_value > max_value) {
+                        max_key = key;
+                        max_value = *map_value;
                 }
                 current_str = strchr(current_str, '\n');
                 if (current_str == 0)
@@ -130,34 +139,9 @@ void insert_into_map(intmap *map, char *data_begin, char *data_end)
         }
 }
 
-struct node *allocate_list_array(void)
+void insert_in_order(struct arraylist *list, hashmap *map)
 {
-        struct node *array;
-
-        array = NULL;
-        array = calloc(max_pair.value + 1, sizeof(struct node));
-        if (array == NULL)
-                return NULL;
-        return array;
-}
-
-struct node *find_free_spot(struct node *array, int value)
-{
-        struct node *spot;
-
-        spot = &(array[value]);
-        if (spot->key == NULL)
-                return spot;
-        while (spot->next != NULL)
-                spot = spot->next;
-        spot->next = calloc(1, sizeof(struct node));
-        return spot->next;
-}
-
-void get_most_common_words(struct node *array, intmap *map)
-{
-        intmap_element *current;
-        struct node *current_node;
+        hashmap_element *current;
         unsigned int i;
 
         for (i = 0; i < map->max_elements; ++i) {
@@ -165,18 +149,14 @@ void get_most_common_words(struct node *array, intmap *map)
                 if (current->key == NULL)
                         continue;
                 while (current != NULL) {
-                        int val;
-
-                        val = current->value;
-                        current_node = find_free_spot(array, val);
-                        current_node->key = current->key;
+                        arraylist_insert(list, current->value, current->key);
                         current = current->next;
                 }
         }
 
 }
 
-void print_most_common_words(struct node *array)
+void print_most_common_words(struct arraylist *list)
 {
         int i, count;
         FILE *out;
@@ -186,10 +166,10 @@ void print_most_common_words(struct node *array)
                 return;
         }
         count = 0;
-        for (i = max_pair.value; i >= 0 && count < 100; --i) {
+        for (i = max_value; i >= 0 && count < 100; --i) {
                 struct node *current;
 
-                current = &(array[i]);
+                current = &(list->elements[i]);
                 while (current != NULL && current->key != NULL && count < 100) {
                         fprintf(out, "%s %i\n", current->key, i);
                         ++count;
@@ -224,4 +204,21 @@ void print_all_related_phrases(const char *key, char *data_begin, char *data_end
                         return;
                 ++current_str;
         }
+}
+
+void free_keys_and_hashmap(hashmap *map)
+{
+        unsigned int i;
+        struct hashmap_element *current;
+
+        for (i = 0; i < map->max_elements; ++i) {
+                current = &(map->elements[i]);
+                if (current->key == NULL)
+                        continue;
+                while (current != NULL) {
+                        free(current->key);
+                        current = current->next;
+                }
+        }
+        hashmap_free(map);
 }
