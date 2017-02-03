@@ -60,4 +60,6 @@ void arraylist_free(struct arraylist *list)
                         }
                 } while (root->next != NULL);
         }
+        free(list->elements);
+        free(list);
 }

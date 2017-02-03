@@ -7,7 +7,7 @@
 #include "hashmap.h"
 #include "arraylist.h"
 
-char *read_file_into_memory(const char *filename, unsigned int *OUT_size);
+char *read_file_into_memory(const char *filename, size_t *OUT_size);
 void change_to_lowercase(char *data_begin, char *data_end);
 void insert_into_map(hashmap *map, char *data_begin, char *data_end);
 void insert_in_order(struct arraylist *list, hashmap *map);
@@ -26,7 +26,6 @@ int main(int argc, char **argv)
         hashmap *words;
         struct arraylist *sorted_phrases;
 
-        while (1) {
         words = hashmap_new(1000);
         start = clock();
         file_data = read_file_into_memory(argv[1], &data_size);
@@ -52,8 +51,6 @@ int main(int argc, char **argv)
         arraylist_free(sorted_phrases);
         free_keys_and_hashmap(words);
         free(file_data);
-        getchar();
-        }
         (void)argc;
         return 0;
 }
@@ -63,13 +60,13 @@ void change_to_lowercase(char *data_begin, char *data_end)
         char *str;
 
         str = data_begin;
-        while (str <= data_end) {
+        while (str < data_end) {
                 *str = tolower(*str);
                 ++str;
         }
 }
 
-char *read_file_into_memory(const char *file_name, unsigned int *OUT_size)
+char *read_file_into_memory(const char *file_name, size_t *OUT_size)
 {
         FILE *f;
         size_t file_size;
@@ -126,6 +123,7 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end)
                 if (map_value == NULL) {
                         hashmap_insert(map, key, 1);
                 } else {
+                        free(key);
                         ++*map_value;
                 }
                 if (map_value != NULL && *map_value > max_value) {
