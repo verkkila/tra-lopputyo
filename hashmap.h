@@ -1,16 +1,10 @@
 #ifndef INTMAP_INCLUDED
 #define INTMAP_INCLUDED
 
-#include <stdbool.h>
+#include <assert.h>
 
 typedef struct hashmap hashmap;
 typedef struct hashmap_element hashmap_element;
-
-hashmap *hashmap_new(size_t initial_size);
-void hashmap_insert(hashmap *map, char *key, int value);
-int *hashmap_get(hashmap *map, const char *key);
-char *hashmap_get_key(hashmap *map, const char *key);
-void hashmap_free(hashmap *map);
 
 struct hashmap_element {
         char *key;
@@ -23,5 +17,12 @@ struct hashmap {
         size_t num_elements;
         hashmap_element *elements;
 };
+
+hashmap *hashmap_new(size_t initial_size);
+void hashmap_insert(hashmap *map, char *key, int value);
+int *hashmap_get(hashmap *map, const char *key);
+char *hashmap_get_key(hashmap *map, const char *key);
+unsigned int hashmap_count_collisions(hashmap *map);
+void hashmap_free(hashmap *map);
 
 #endif

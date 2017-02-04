@@ -43,17 +43,16 @@ void arraylist_free(struct arraylist *list)
 
         for (i = 0; i < list->size; ++i) {
                 root = &(list->elements[i]);
-                if (root == NULL)
-                        continue;
+                assert(root != NULL);
                 prev = root;
                 do {
                         iter = root;
-                        /*Siirrytään liitetyn listan viimeiseen jäseneen*/
+                        /*Move to the last member of the list, while keeping track of the previous one*/
                         while (iter->next != NULL) {
                                 prev = iter;
                                 iter = iter->next;
                         }
-                        /*Jos jäsen ei ole taulukon alkio, vapautetaan sille kuulunut muisti*/
+                        /*Free the node if it isn't part of the array*/
                         if (iter != root) {
                                 free(iter);
                                 prev->next = NULL;
