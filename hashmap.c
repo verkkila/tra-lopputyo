@@ -113,14 +113,31 @@ int *hashmap_get(hashmap *map, const char *key)
         
         index = hash(key) % map->max_elements;
         current = &(map->elements[index]);
-        if (current == NULL) {
+        if (current == NULL)
                 return NULL;
-        }
-        if (current->key == NULL)
+        else if (current->key == NULL)
                 return NULL;
         do {
                 if (!strcmp(current->key, key))
                         return &(current->value);
+        } while ((current = current->next) != NULL);
+        return NULL;
+}
+
+char *hashmap_get_key(hashmap *map, const char *key)
+{
+        unsigned int index;
+        hashmap_element *current;
+        
+        index = hash(key) % map->max_elements;
+        current = &(map->elements[index]);
+        if (current == NULL)
+                return NULL;
+        else if (current->key == NULL)
+                return NULL;
+        do {
+                if (!strcmp(current->key, key))
+                        return current->key;
         } while ((current = current->next) != NULL);
         return NULL;
 }

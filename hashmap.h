@@ -9,6 +9,7 @@ typedef struct hashmap_element hashmap_element;
 hashmap *hashmap_new(size_t initial_size);
 void hashmap_insert(hashmap *map, char *key, int value);
 int *hashmap_get(hashmap *map, const char *key);
+char *hashmap_get_key(hashmap *map, const char *key);
 void hashmap_free(hashmap *map);
 
 struct hashmap_element {

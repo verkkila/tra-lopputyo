@@ -7,6 +7,7 @@
 #include "hashmap.h"
 #include "arraylist.h"
 
+void print_usage_and_exit(void);
 char *read_file_into_memory(const char *filename, size_t *OUT_size);
 void change_to_lowercase(char *data_begin, char *data_end);
 void insert_into_map(hashmap *map, char *data_begin, char *data_end);
@@ -26,7 +27,12 @@ int main(int argc, char **argv)
         hashmap *words;
         struct arraylist *sorted_phrases;
 
+        if (argc < 2 || argc > 3) {
+                print_usage_and_exit();
+        }
         words = hashmap_new(1000);
+        if (words == NULL)
+                return 1;
         start = clock();
         file_data = read_file_into_memory(argv[1], &data_size);
         change_to_lowercase(file_data, file_data + data_size);
@@ -36,23 +42,28 @@ int main(int argc, char **argv)
         after_map_insertion = clock() - after_file_read;
         printf("Hash table built in %f seconds.\n", (float)after_map_insertion / CLOCKS_PER_SEC);
         sorted_phrases = arraylist_new(max_value + 1);
-        if (sorted_phrases == NULL) {
+        if (sorted_phrases == NULL)
                 return 1;
-        }
         insert_in_order(sorted_phrases, words);
         print_most_common_words(sorted_phrases);
         after_finding_most_common = clock() - after_map_insertion;
         printf("Found 100 most common words in %f seconds.\n", (float)after_finding_most_common / CLOCKS_PER_SEC);
         printf("Total runtime: %f seconds.\n", ((float)after_file_read + (float)after_map_insertion + (float)after_finding_most_common) / CLOCKS_PER_SEC);
-        /*
-        printf("Phrases related to \"%s\":\n", max_key);
-        print_all_related_phrases(max_key, file_data, file_data + data_size);
-        */
+        if (argc == 3 && !strncmp(argv[2], "-p", 2)) {
+                printf("Phrases related to \"%s\":\n", max_key);
+                print_all_related_phrases(max_key, file_data, file_data + data_size);
+        }
         arraylist_free(sorted_phrases);
         free_keys_and_hashmap(words);
         free(file_data);
         (void)argc;
         return 0;
+}
+
+void print_usage_and_exit(void)
+{
+        printf("Usage: ./tra-lopputyo phrases.txt [-p]\n-p\tPrint all phrases related to the most common one..\n");
+        exit(1);
 }
 
 void change_to_lowercase(char *data_begin, char *data_end)
@@ -78,6 +89,7 @@ char *read_file_into_memory(const char *file_name, size_t *OUT_size)
         f = fopen(file_name, "rb");
         if (f == NULL) {
                 printf("Failed to open file \"%s\"\n", file_name);
+                print_usage_and_exit();
                 return NULL;
         }
         fseek(f, 0, SEEK_END);
@@ -109,7 +121,7 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end)
         str_len = 0;
         current_str = data_begin;
         while (current_str < data_end) {
-                char *key;
+                char *key, *map_key;
 
                 str_len = strcspn(current_str, ":");
                 key = malloc(str_len+1);
@@ -120,6 +132,7 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end)
                 strncpy(key, current_str, str_len);
                 key[str_len] = '\0';
                 map_value = hashmap_get(map, key);
+                map_key = hashmap_get_key(map, key);
                 if (map_value == NULL) {
                         hashmap_insert(map, key, 1);
                 } else {
@@ -127,7 +140,7 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end)
                         ++*map_value;
                 }
                 if (map_value != NULL && *map_value > max_value) {
-                        max_key = key;
+                        max_key = map_key;
                         max_value = *map_value;
                 }
                 current_str = strchr(current_str, '\n');
