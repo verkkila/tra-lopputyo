@@ -9,12 +9,12 @@ static void rehash(hashmap *map);
  * djb2 - http://www.cse.yorku.ca/~oz/hash.html
  */
 
-static unsigned int hash(unsigned const char *str)
+static unsigned int hash(const char *str)
 {
         unsigned int hash = 5381;
         int c;
 
-        while (c = *str++)
+        while ((c = *str++) != '\0')
                 hash = ((hash << 5) + hash) + c;
         return hash;
 }
