@@ -2,6 +2,7 @@
 #define INTMAP_INCLUDED
 
 #include <assert.h>
+#include <stdbool.h>
 
 typedef struct hashmap hashmap;
 typedef struct hashmap_element hashmap_element;

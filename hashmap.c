@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "hashmap.h"
 
-static void free_elements(hashmap_element *elements, size_t n);
+static void free_elements(hashmap_element *elements, size_t n, bool free_keys);
 static void rehash(hashmap *map);
 /*
  * djb2 - http://www.cse.yorku.ca/~oz/hash.html
@@ -85,13 +85,14 @@ static void rehash(hashmap *map)
                         src = src->next;
                 }
         }
-        free_elements(old_elements, map->max_elements);
+        free_elements(old_elements, map->max_elements, false);
         map->max_elements = new_max_elements;
 }
 
 void hashmap_insert(hashmap *map, char *key, int value)
 {
         unsigned int index;
+        size_t key_len;
         hashmap_element *current;
 
         index = hash(key) % map->max_elements;
@@ -105,7 +106,16 @@ void hashmap_insert(hashmap *map, char *key, int value)
                 current = current->next;
         }
         ++map->num_elements;
-        current->key = key;
+        assert(key != NULL);
+        key_len = strlen(key);
+        current->key = malloc(key_len + 1);
+        if (current->key == NULL) {
+                printf("Failed to allocate memory for hashmap key.\n");
+        } else {
+                strncpy(current->key, key, key_len); 
+                /*could just copy the null terminator over from key*/
+                current->key[key_len] = '\0';
+        }
         current->value = value;
         if (map->num_elements > map->max_elements * 0.75f) {
                 rehash(map);
@@ -163,7 +173,7 @@ unsigned int hashmap_count_collisions(hashmap *map)
         return collisions;
 }
 
-static void free_elements(struct hashmap_element *elements, size_t n)
+static void free_elements(struct hashmap_element *elements, size_t n, bool free_keys)
 {
         unsigned int i;
         hashmap_element *root, *iter;
@@ -182,16 +192,20 @@ static void free_elements(struct hashmap_element *elements, size_t n)
                         }
                         /*If the node isn't part of the array, free it*/
                         if (iter != root) {
+                                if (free_keys && iter->key != NULL)
+                                        free(iter->key);
                                 free(iter);
                                 prev->next = NULL;
                         }
                 } while (root->next != NULL);
+                if (free_keys && root->key != NULL)
+                        free(root->key);
         }
         free(elements);
 }
 
 void hashmap_free(hashmap *map)
 {
-        free_elements(map->elements, map->max_elements);
+        free_elements(map->elements, map->max_elements, true);
         free(map);
 }

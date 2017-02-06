@@ -128,24 +128,17 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end)
         str_len = 0;
         current_str = data_begin;
         while (current_str < data_end) {
-                char *key, *map_key;
+                char *map_key, temp_key[32];
 
                 /*calculate the length of the phrase and allocate memory for it*/
                 str_len = strcspn(current_str, ":");
-                key = malloc(str_len+1);
-                if (key == NULL) {
-                        printf("Could not allocate memory for key.\n");
-                        exit(1);
-                }
-                strncpy(key, current_str, str_len);
-                key[str_len] = '\0';
-                map_key = hashmap_get_key(map, key);
-                map_value = hashmap_get(map, key);
+                strncpy(temp_key, current_str, str_len);
+                temp_key[str_len] = '\0';
+                map_key = hashmap_get_key(map, temp_key);
+                map_value = hashmap_get(map, temp_key);
                 if (map_value == NULL) {
-                        hashmap_insert(map, key, 1);
+                        hashmap_insert(map, temp_key, 1);
                 } else {
-                        /*key is already in table so we can free this one*/
-                        free(key);
                         ++*map_value;
                 }
                 /*keep track of the highest key and value*/
