@@ -93,7 +93,6 @@ char *read_file_into_memory(const char *file_name, size_t *OUT_size)
         size_t read_bytes;
 
         assert(file_name != NULL);
-        f = NULL;
         f = fopen(file_name, "rb");
         if (f == NULL) {
                 printf("Failed to open file \"%s\"\n", file_name);
@@ -105,7 +104,6 @@ char *read_file_into_memory(const char *file_name, size_t *OUT_size)
         file_size = ftell(f);
         fseek(f, 0, SEEK_SET);
 
-        file_data = NULL;
         file_data = malloc(file_size);
         if (file_data == NULL) {
                 printf("Could not allocate enough memory for the file. (size = %lu\n", file_size);

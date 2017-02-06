@@ -24,7 +24,6 @@ hashmap *hashmap_new(size_t initial_size)
         hashmap *map;
         size_t min_element_count;
 
-        map = NULL;
         map = malloc(sizeof(struct hashmap));
         if (map == NULL) {
                 printf("Failed to allocate memory for hashmap.\n");
@@ -38,7 +37,6 @@ hashmap *hashmap_new(size_t initial_size)
                 map->max_elements *= 2;
         }
         map->num_elements = 0;
-        map->elements = NULL;
         map->elements = calloc(map->max_elements, sizeof(hashmap_element));
         if (map->elements == NULL) {
                 free(map);
@@ -68,7 +66,6 @@ static void rehash(hashmap *map)
 
                 src = &(old_elements[i]);
                 assert(src != NULL);
-                /*relies on loop short-circuiting*/
                 while (src != NULL && src->key != NULL) {
                         unsigned int index;
                         

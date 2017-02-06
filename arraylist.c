@@ -4,14 +4,12 @@ struct arraylist *arraylist_new(size_t array_size)
 {
         struct arraylist *list;
 
-        list = NULL;
         list = malloc(sizeof(struct arraylist));
         if (list == NULL) {
                 printf("Failed to allocate memory for arraylist.\n");
                 return NULL;
         }
         list->size = array_size;
-        list->elements = NULL;
         list->elements = calloc(array_size, sizeof(struct node));
         if (list->elements == NULL) {
                 printf("Failed to allocate memory for arraylist elements (size %lu).\n", array_size);
