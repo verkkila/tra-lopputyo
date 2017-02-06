@@ -16,7 +16,6 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end);
 void insert_in_order(struct arraylist *list, hashmap *map);
 void print_most_common_words(struct arraylist *list);
 void print_all_related_phrases(const char *key, char *data_begin, char *data_end);
-void free_keys_and_hashmap(hashmap *map);
 
 char *max_key = NULL;
 int max_value = 0;
@@ -63,7 +62,7 @@ int main(int argc, char **argv)
                 print_all_related_phrases(max_key, file_data, file_data + data_size);
         }
         arraylist_free(sorted_phrases);
-        free_keys_and_hashmap(words);
+        hashmap_free(words);
         free(file_data);
         return 0;
 }
@@ -227,26 +226,4 @@ void print_all_related_phrases(const char *key, char *data_begin, char *data_end
                         return;
                 ++current_str;
         }
-}
-
-/*
-Because keys for the hashmap were allocated outside of the hashmap, we need to first free them
-before freeing the map. We can't free keys inside the hashmap's free function because the user
-decides where the keys are (they may not be malloc'd at all).
-*/
-void free_keys_and_hashmap(hashmap *map)
-{
-        unsigned int i;
-        struct hashmap_element *current;
-
-        for (i = 0; i < map->max_elements; ++i) {
-                current = &(map->elements[i]);
-                if (current->key == NULL)
-                        continue;
-                while (current != NULL) {
-                        free(current->key);
-                        current = current->next;
-                }
-        }
-        hashmap_free(map);
 }
