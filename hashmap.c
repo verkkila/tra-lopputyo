@@ -192,13 +192,13 @@ static void free_elements(struct hashmap_element *elements, size_t n, bool free_
                         }
                         /*If the node isn't part of the array, free it*/
                         if (iter != root) {
-                                if (free_keys && iter->key != NULL)
+                                if (free_keys)
                                         free(iter->key);
                                 free(iter);
                                 prev->next = NULL;
                         }
                 } while (root->next != NULL);
-                if (free_keys && root->key != NULL)
+                if (free_keys)
                         free(root->key);
         }
         free(elements);
