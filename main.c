@@ -129,7 +129,7 @@ void insert_into_map(hashmap *map, char *data_begin, char *data_end)
         while (current_str < data_end) {
                 char *map_key, temp_key[32];
 
-                /*calculate the length of the phrase and allocate memory for it*/
+                /*calculate the length of the phrase and copy it to a temporary buffer*/
                 str_len = strcspn(current_str, ":");
                 strncpy(temp_key, current_str, str_len);
                 temp_key[str_len] = '\0';
@@ -214,8 +214,8 @@ void print_all_related_phrases(const char *key, char *data_begin, char *data_end
                         /*current_str is at the beginning of phrase:related_phrase,
                         str_len is the length of phrase including the ':'*/
                         phrase_len = phrase_end - (current_str + str_len);
-                        /*phrase_len should be 32 at max*/
-                        phrase_len = phrase_len > 32 ? 32 : phrase_len;
+                        /*phrase_len should be 31 at max*/
+                        phrase_len = phrase_len > 31 ? 31 : phrase_len;
                         /*current_str + str_len + 1 is the first character of related_phrase*/
                         strncpy(buf, current_str + str_len + 1, phrase_len);
                         buf[phrase_len] = '\0';
